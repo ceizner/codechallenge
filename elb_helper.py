@@ -16,13 +16,17 @@ if(len(sys.argv) < 6):
 
 #Let's print the status of our instances 
 def printinstances( loadblancer, instance ):
-  list_elb_resp = elbclient.describe_load_balancers(LoadBalancerNames=[loadblancer])
-  for list_instance in (list_elb_resp['LoadBalancerDescriptions'][0]['Instances' ]):
-            if (instance[0]['InstanceId']==list_instance['InstanceId']):
-              print ('Instance {1} registered with load balancer {0}'.format(loadblancer,list_instance['InstanceId']))
-              return;
-  print ('Instance {1} IS NOT registered with load balancer {0}'.format(loadblancer,list_instance['InstanceId']))
-  return;
+  try:
+     list_elb_resp = elbclient.describe_load_balancers(LoadBalancerNames=[loadblancer])
+     for list_instance in (list_elb_resp['LoadBalancerDescriptions'][0]['Instances' ]):
+               if (instance[0]['InstanceId']==list_instance['InstanceId']):
+                 print ('Instance {1} registered with load balancer {0}'.format(loadblancer,list_instance['InstanceId']))
+                 return;
+     print ('Instance {1} IS NOT registered with load balancer {0}'.format(loadblancer,list_instance['InstanceId']))
+     return;
+  except Exception as e: 
+      print e
+      
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'l:i:rds', ['loadbalancer=', 'instance=', 'help', 'r|d|s'])
