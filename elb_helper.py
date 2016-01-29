@@ -1,3 +1,4 @@
+#!/usr/bin/env python 
 # Import the SDK
 import boto3
 import uuid
