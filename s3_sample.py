@@ -53,6 +53,7 @@ s3client.create_bucket(Bucket=bucket_name)
 # Now the bucket is created, and you'll find it in your list of buckets.
 
 list_buckets_resp = s3client.list_buckets()
+print list_buckets_resp
 for bucket in list_buckets_resp['Buckets']:
     if bucket['Name'] == bucket_name:
         print('(Just created) --> {} - there since {}'.format(
