@@ -5,18 +5,30 @@ import sys
 import getopt
 
 elbclient = boto3.client('elb')
-InstanceID=[ {'InstanceId': 'i-89ffec3b' } ]
+#InstanceID=[ {'InstanceId': 'i-89ffec3b' } ]
 
 def usage ():
    print "elb_helper.py -l <LB name> -i <instance> <-d[eregister]|-r[egister]|-s[status]>"
 	
+if(len(sys.argv) < 6):
+   usage()
+   sys.exit(2)
+
+#Let's print the status of our instances 
+def printinstances( loadblancer, instance ):
+  list_elb_resp = elbclient.describe_load_balancers(LoadBalancerNames=[loadblancer])
+  for list_instance in (list_elb_resp['LoadBalancerDescriptions'][0]['Instances' ]):
+            if (instance[0]['InstanceId']==list_instance['InstanceId']):
+              print ('Instance {1} registered with load balancer {0}'.format(loadblancer,list_instance['InstanceId']))
+              return;
+  print ('Instance {1} IS NOT registered with load balancer {0}'.format(loadblancer,list_instance['InstanceId']))
+  return;
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'l:i:c', ['loadbalancer=', 'instance=', 'help', 'r|d|s'])
+    opts, args = getopt.getopt(sys.argv[1:], 'l:i:rds', ['loadbalancer=', 'instance=', 'help', 'r|d|s'])
 except getopt.GetoptError:
     usage()
     sys.exit(2)
-print type(opts)
 for opt, arg in opts:
     if opt in ('-h', '--help'):
         usage()
@@ -25,35 +37,19 @@ for opt, arg in opts:
         LB = arg
     elif opt in ('-i', '--instance'):
         InstanceID=[ {'InstanceId': arg } ] 
+    elif opt in ('-r', '--redister'):
+	response = elbclient.register_instances_with_load_balancer(
+        LoadBalancerName=LB,
+    	Instances= InstanceID
+	)
+    elif opt in ('-d', '--deregister'):
+	 response = elbclient.deregister_instances_from_load_balancer(
+         LoadBalancerName=LB,
+         Instances= InstanceID
+         )
+    elif opt in ('-s', '--status'):
+         printinstances(LB,InstanceID)
     else:
         usage()
         sys.exit(2)
-
-#Let's print our instances 
-def printinstances( str ):
-  list_elb_resp = elbclient.describe_load_balancers(LoadBalancerNames=[str])
-  print 'Load Balancer {0} has the following instances'.format(LB)
-  for instance in (list_elb_resp['LoadBalancerDescriptions'][0]['Instances' ]):
-       print '{0}'.format(instance['InstanceId'])
-  return;
-
-printinstances(LB)
-
-response = elbclient.deregister_instances_from_load_balancer(
-    LoadBalancerName=LB,
-    Instances= InstanceID
-)
-
-response = elbclient.register_instances_with_load_balancer(
-    LoadBalancerName=LB,
-    Instances= InstanceID
-)
-
-printinstances(LB)
-
-#try:
-#    input = raw_input
-#except NameError:
-#    pass
-#input("\nPress enter to continue...")
 
