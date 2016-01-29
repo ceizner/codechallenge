@@ -5,15 +5,14 @@ import sys
 import getopt
 
 elbclient = boto3.client('elb')
-LB='ceizner-LB'
-RemoveInstances=[ {'InstanceId': 'i-89ffec3b' } ]
+InstanceID=[ {'InstanceId': 'i-89ffec3b' } ]
 
 def usage ():
-   print "elb_helper.py -l <LB name> -i <instance> -d|-r"
+   print "elb_helper.py -l <LB name> -i <instance> <-d[eregister]|-r[egister]|-s[status]>"
 	
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'l:i:o', ['loadbalancer=', 'instance=', 'help'])
+    opts, args = getopt.getopt(sys.argv[1:], 'l:i:c', ['loadbalancer=', 'instance=', 'help', 'r|d|s'])
 except getopt.GetoptError:
     usage()
     sys.exit(2)
@@ -22,10 +21,10 @@ for opt, arg in opts:
     if opt in ('-h', '--help'):
         usage()
         sys.exit(2)
-    elif opt in ('-m', '--miner'):
-        miner_name = arg
-    elif opt in ('-p', '--params'):
-        params = arg
+    elif opt in ('-l', '--loadbalancer'):
+        LB = arg
+    elif opt in ('-i', '--instance'):
+        InstanceID=[ {'InstanceId': arg } ] 
     else:
         usage()
         sys.exit(2)
@@ -42,12 +41,12 @@ printinstances(LB)
 
 response = elbclient.deregister_instances_from_load_balancer(
     LoadBalancerName=LB,
-    Instances= RemoveInstances
+    Instances= InstanceID
 )
 
 response = elbclient.register_instances_with_load_balancer(
     LoadBalancerName=LB,
-    Instances= RemoveInstances
+    Instances= InstanceID
 )
 
 printinstances(LB)
