@@ -5,7 +5,6 @@ import sys
 import getopt
 
 elbclient = boto3.client('elb')
-#InstanceID=[ {'InstanceId': 'i-89ffec3b' } ]
 
 def usage ():
    print "elb_helper.py -l <LB name> -i <instance> <-d[eregister]|-r[egister]|-s[status]>"
