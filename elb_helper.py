@@ -41,7 +41,7 @@ for opt, arg in opts:
         LB = arg
     elif opt in ('-i', '--instance'):
         InstanceID=[ {'InstanceId': arg } ] 
-    elif opt in ('-r', '--redister'):
+    elif opt in ('-r', '--register'):
 	response = elbclient.register_instances_with_load_balancer(
         LoadBalancerName=LB,
     	Instances= InstanceID
