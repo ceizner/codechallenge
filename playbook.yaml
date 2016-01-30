@@ -1,0 +1,62 @@
+- hosts: webservers
+  sudo: yes
+  tasks:
+    - name: Installs PHP 
+      apt: name={{ item }} update_cache=yes state=latest 
+      with_items:
+       - git
+       - mcrypt
+       - nginx
+       - php5-cli
+       - php5-curl
+       - php5-fpm
+       - php5-intl
+       - php5-json
+       - php5-mcrypt
+       - php5-sqlite
+       - sqlite3
+    - name: ensure php5-fpm cgi.fix_pathinfo=0
+      lineinfile: dest=/etc/php5/fpm/php.ini regexp='^(.*)cgi.fix_pathinfo=' line=cgi.fix_pathinfo=0
+      notify:
+       - restart php5-fpm
+       - restart nginx
+    - name: enable php5 mcrypt module
+      shell: php5enmod mcrypt
+      args:
+        creates: /etc/php5/cli/conf.d/20-mcrypt.ini
+
+    - name: Install Postgress 
+      apt: name={{ item }}
+      with_items:
+        - postgresql
+        - libpq-dev
+        - python-psycopg2
+    - name: Install phppgadmin
+      apt:  name=phppgadmin update_cache=yes state=latest
+      
+  handlers:
+   - name: restart php5-fpm
+     service: name=php5-fpm state=restarted
+
+   - name: restart nginx
+     service: name=nginx state=restarted
+
+- hosts: webservers
+  sudo: yes
+  sudo_user: postgres
+  gather_facts: no
+  
+  vars:
+    dbname: myapp
+    dbuser: django
+    dbpassword: mysupersecretpassword
+
+  tasks:
+  - name: ensure database is created
+    postgresql_db: name={{dbname}}
+
+  - name: ensure user has access to database
+    postgresql_user: db={{dbname}} name={{dbuser}} password={{dbpassword}} priv=ALL
+
+  - name: ensure user does not have unnecessary privilege
+    postgresql_user: name={{dbuser}} role_attr_flags=NOSUPERUSER,NOCREATEDB
